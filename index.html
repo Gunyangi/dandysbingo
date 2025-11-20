@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>댄디스 월드 툰 빙고 v05 - Made by 그냥이</title>
+  <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --text-color: #222;
+      --panel-bg: #ffffff;
+      --panel-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      --border-color: #ccc;
+      --primary: #007bff;
+      --primary-text: #ffffff;
+      --cell-bg: #fafafa;
+      --cell-hover: #f0f6ff;
+      --cell-checked-bg: #007bff;
+      --cell-checked-text: #ffffff;
+      --free-bg: #ffeeba;
+      --free-checked-bg: #ffc107;
+      --line-color: rgba(220, 53, 69, 0.9);
+      --btn-disabled-bg: #9ca3af;
+      --btn-disabled-text: #e5e7eb;
+    }
+
+    body[data-theme="dark"] {
+      --bg-color: #111827;
+      --text-color: #e5e7eb;
+      --panel-bg: #1f2937;
+      --panel-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      --border-color: #4b5563;
+      --primary: #3b82f6;
+      --primary-text: #ffffff;
+      --cell-bg: #111827;
+      --cell-hover: #1f2937;
+      --cell-checked-bg: #3b82f6;
+      --cell-checked-text: #f9fafb;
+      --free-bg: #92400e;
+      --free-checked-bg: #f59e0b;
+      --line-color: rgba(248, 250, 252, 0.9);
+      --btn-disabled-bg: #374151;
+      --btn-disabled-text: #6b7280;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 26px;
+    }
+    h1 .version {
+      font-size: 0.6em;
+      margin-left: 8px;
+      color: #6b7280;
+      vertical-align: middle;
+    }
+    h1 .madeby {
+      font-size: 0.6em;
+      margin-left: 12px;
+      color: #9ca3af;
+      vertical-align: middle;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 800px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--panel-shadow);
+      border: 1px solid rgba(0,0,0,0.02);
+    }
+    .panel-title {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    label {
+      font-size: 14px;
+      margin-right: 8px;
+    }
+    select, button {
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      background: #fff;
+      color: #111827;
+    }
+    body[data-theme="dark"] select,
+    body[data-theme="dark"] button {
+      background: #111827;
+      color: var(--text-color);
+    }
+    button {
+      background: var(--primary);
+      color: var(--primary-text);
+      border: none;
+      margin-top: 8px;
+      transition: background 0.15s, transform 0.05s, opacity 0.15s;
+    }
+    button:not(:disabled):active {
+      transform: scale(0.97);
+    }
+    button:disabled {
+      background: var(--btn-disabled-bg);
+      color: var(--btn-disabled-text);
+      cursor: not-allowed;
+      opacity: 0.85;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .field-row {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      .panel {
+        padding: 12px;
+      }
+      .panel-title {
+        font-size: 15px;
+      }
+      label, select, button {
+        font-size: 15px;
+      }
+      .cell {
+        font-size: 13px;
+      }
+      .status {
+        font-size: 15px;
+      }
+      #bingoMessage {
+        font-size: 18px;
+      }
+    }
+
+    /* 빙고판 */
+    #boardWrapper {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      aspect-ratio: 1 / 1;
+    }
+    #bingoGrid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+    }
+    .cell {
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      background: var(--cell-bg);
+      transition: background 0.15s, color 0.15s, transform 0.08s;
+      text-align: center;
+      padding: 2px;
+    }
+    .cell:hover {
+      background: var(--cell-hover);
+    }
+    .cell.checked {
+      background: var(--cell-checked-bg);
+      color: var(--cell-checked-text);
+      font-weight: 700;
+      transform: scale(0.97);
+    }
+    .cell.free {
+      background: var(--free-bg);
+      font-weight: 700;
+    }
+    .cell.free.checked {
+      background: var(--free-checked-bg);
+      color: #000;
+    }
+    body[data-theme="dark"] .cell.free.checked {
+      color: #111827;
+    }
+    .cell.free img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .line {
+      position: absolute;
+      background: var(--line-color);
+      border-radius: 999px;
+      display: none;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .line-horizontal {
+      height: 4px;
+      left: 3%;
+      right: 3%;
+    }
+    .line-vertical {
+      width: 4px;
+      top: 3%;
+      bottom: 3%;
+    }
+    #row-line-0 { top: 10%; }
+    #row-line-1 { top: 30%; }
+    #row-line-2 { top: 50%; transform: translateY(-50%); }
+    #row-line-3 { top: 70%; }
+    #row-line-4 { top: 90%; }
+    #col-line-0 { left: 10%; }
+    #col-line-1 { left: 30%; }
+    #col-line-2 { left: 50%; transform: translateX(-50%); }
+    #col-line-3 { left: 70%; }
+    #col-line-4 { left: 90%; }
+    #diag-line-0, #diag-line-1 {
+      height: 4px;
+      width: 150%;
+      top: 50%;
+      left: 50%;
+      transform-origin: center center;
+    }
+    #diag-line-0 { transform: translate(-50%, -50%) rotate(45deg); }
+    #diag-line-1 { transform: translate(-50%, -50%) rotate(-45deg); }
+
+    .status {
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+    }
+    #bingoMessage {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #dc3545;
+      text-align: center;
+    }
+    body[data-theme="dark"] #bingoMessage {
+      color: #f97316;
+    }
+    .error {
+      color: #dc3545;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    /* 무지개 플래시 */
+    #rainbowOverlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0;
+      background: conic-gradient(
+        from 0deg,
+        #ff0000,
+        #ff7f00,
+        #ffff00,
+        #00ff00,
+        #00ffff,
+        #0000ff,
+        #4b0082,
+        #8b00ff,
+        #ff0000
+      );
+      mix-blend-mode: screen;
+    }
+    .rainbow-flash {
+      animation: rainbowFlash 2s ease-out forwards;
+    }
+    @keyframes rainbowFlash {
+      0%   { opacity: 0; }
+      10%  { opacity: 0.8; }
+      40%  { opacity: 1; }
+      70%  { opacity: 0.9; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <h1>
+    댄디스 월드 툰 빙고
+    <span class="version">v05</span>
+    <span class="madeby">Made by 그냥이</span>
+  </h1>
+
+  <div class="container">
+    <div class="panel">
+      <div class="panel-title">1. 설정</div>
+
+      <div class="field-row">
+        <label for="targetLines">완성 줄 수</label>
+        <select id="targetLines">
+          <option value="1">1줄</option>
+          <option value="2">2줄</option>
+          <option value="3" selected>3줄</option>
+          <option value="4">4줄</option>
+          <option value="5">5줄</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <label for="themeSelect">테마</label>
+        <select id="themeSelect">
+          <option value="light" selected>라이트 모드</option>
+          <option value="dark">다크 모드</option>
+        </select>
+      </div>
+
+      <div class="button-row">
+        <button id="buildBoardBtn">빙고판 만들기</button>
+        <button id="startBtn">게임 시작</button>
+        <button id="resetBtn" disabled>다시 하기</button>
+      </div>
+
+      <div id="errorMessage" class="error"></div>
+      <div style="font-size:12px; color:#777; margin-top:4px;">
+        ※ 댄디스 월드 툰 캐릭터 목록에서 무작위로 5×5 빙고판이 만들어집니다.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">2. 빙고판</div>
+      <div id="boardWrapper">
+        <div id="bingoGrid"></div>
+
+        <div id="row-line-0" class="line line-horizontal"></div>
+        <div id="row-line-1" class="line line-horizontal"></div>
+        <div id="row-line-2" class="line line-horizontal"></div>
+        <div id="row-line-3" class="line line-horizontal"></div>
+        <div id="row-line-4" class="line line-horizontal"></div>
+
+        <div id="col-line-0" class="line line-vertical"></div>
+        <div id="col-line-1" class="line line-vertical"></div>
+        <div id="col-line-2" class="line line-vertical"></div>
+        <div id="col-line-3" class="line line-vertical"></div>
+        <div id="col-line-4" class="line line-vertical"></div>
+
+        <div id="diag-line-0" class="line"></div>
+        <div id="diag-line-1" class="line"></div>
+      </div>
+
+      <div class="status">
+        <span id="lineCount">0줄 완성</span>
+      </div>
+      <div id="bingoMessage"></div>
+    </div>
+  </div>
+
+  <audio id="clickSound" src="click.mp3" preload="auto"></audio>
+  <audio id="meowSound" src="meow.mp3" preload="auto"></audio>
+  <audio id="bingoSound" src="bingo_complete.mp3" preload="auto"></audio>
+
+  <div id="rainbowOverlay"></div>
+
+  <script>
+    const CHARACTERS = [
+      "박스텐","파피","브라이트니","쉬림포","로저","구브","스크랩","투들","래즐대즐",
+      "티샤","플러터","티건","글리스텐","코스모","핀","지지","코니","루이","야타",
+      "블로트","브러샤","아스트로","페블","비","쉘리","스프라우트","댄디","다일"
+    ];
+
+    const targetLinesSelect = document.getElementById('targetLines');
+    const themeSelect = document.getElementById('themeSelect');
+    const buildBoardBtn = document.getElementById('buildBoardBtn');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const errorMessage = document.getElementById('errorMessage');
+    const bingoGrid = document.getElementById('bingoGrid');
+    const lineCountSpan = document.getElementById('lineCount');
+    const bingoMessage = document.getElementById('bingoMessage');
+    const rainbowOverlay = document.getElementById('rainbowOverlay');
+
+    const clickSound = document.getElementById('clickSound');
+    const meowSound = document.getElementById('meowSound');
+    const bingoSound = document.getElementById('bingoSound');
+
+    let checked = Array.from({ length: 5 }, () => Array(5).fill(false));
+    let gameStarted = false;
+    let boardBuilt = false;
+    let targetLines = 1;
+    let lastLineCount = 0;
+    let bingoAchieved = false;
+    let audioUnlocked = false;
+
+    // 가능한 한 빨리 파일 로딩 시도
+    [clickSound, meowSound, bingoSound].forEach(a => a && a.load());
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function clearLines() {
+      document.querySelectorAll('.line').forEach(x => x.style.display = 'none');
+    }
+
+    function playSound(el, volume) {
+      if (!el) return;
+      el.volume = volume;
+      try {
+        el.currentTime = 0;
+        el.play().catch(() => {});
+      } catch (e) {}
+    }
+
+    // 1. 클릭 사운드 하나로만, 무음 재생해서 오디오 잠금 해제
+    function unlockAudioOnce() {
+      if (audioUnlocked) return;
+      audioUnlocked = true;
+      if (!clickSound) return;
+
+      const originalVol = clickSound.volume;
+      clickSound.volume = 0;
+      try {
+        const p = clickSound.play();
+        if (p && p.then) {
+          p.then(() => {
+            clickSound.pause();
+            clickSound.currentTime = 0;
+            clickSound.volume = originalVol;
+          }).catch(() => {
+            clickSound.volume = originalVol;
+          });
+        } else {
+          clickSound.pause();
+          clickSound.currentTime = 0;
+          clickSound.volume = originalVol;
+        }
+      } catch (e) {
+        clickSound.volume = originalVol;
+      }
+    }
+
+    window.addEventListener('touchstart', unlockAudioOnce, { once: true, passive: true });
+    window.addEventListener('mousedown', unlockAudioOnce, { once: true });
+
+    function triggerRainbowFlash() {
+      rainbowOverlay.classList.remove('rainbow-flash');
+      void rainbowOverlay.offsetWidth;
+      rainbowOverlay.classList.add('rainbow-flash');
+    }
+
+    function buildBoard() {
+      if (CHARACTERS.length < 24) {
+        errorMessage.textContent = '캐릭터 목록이 부족합니다 (24개 이상 필요).';
+        return false;
+      }
+
+      errorMessage.textContent = '';
+      bingoMessage.textContent = '';
+      lineCountSpan.textContent = '0줄 완성';
+      clearLines();
+      lastLineCount = 0;
+      bingoAchieved = false;
+
+      const shuffled = shuffle([...CHARACTERS]).slice(0, 24);
+      checked = Array.from({ length: 5 }, () => Array(5).fill(false));
+
+      bingoGrid.innerHTML = '';
+      let idx = 0;
+
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 5; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+
+          if (r === 2 && c === 2) {
+            cell.innerHTML = '<img src="01_Danflower.png" alt="FREE">';
+            cell.classList.add('checked', 'free');
+            checked[2][2] = true;
+          } else {
+            cell.textContent = shuffled[idx++];
+          }
+
+          cell.addEventListener('click', onCellClick);
+          bingoGrid.appendChild(cell);
+        }
+      }
+
+      boardBuilt = true;
+      updateLines();
+      return true;
+    }
+
+    function onCellClick(e) {
+      if (!gameStarted) return;
+
+      const cell = e.currentTarget;
+      const r = +cell.dataset.row;
+      const c = +cell.dataset.col;
+
+      if (r === 2 && c === 2) return;
+
+      checked[r][c] = !checked[r][c];
+      cell.classList.toggle('checked', checked[r][c]);
+
+      playSound(clickSound, 0.2);
+      updateLines();
+    }
+
+    function updateLines() {
+      let count = 0;
+      clearLines();
+
+      // 가로
+      for (let r = 0; r < 5; r++) {
+        if (checked[r].every(v => v)) {
+          count++;
+          document.getElementById(`row-line-${r}`).style.display = 'block';
+        }
+      }
+
+      // 세로
+      for (let c = 0; c < 5; c++) {
+        let colFull = true;
+        for (let r = 0; r < 5; r++) {
+          if (!checked[r][c]) { colFull = false; break; }
+        }
+        if (colFull) {
+          count++;
+          document.getElementById(`col-line-${c}`).style.display = 'block';
+        }
+      }
+
+      // 대각선
+      let diag1 = true;
+      let diag2 = true;
+      for (let i = 0; i < 5; i++) {
+        if (!checked[i][i]) diag1 = false;
+        if (!checked[i][4 - i]) diag2 = false;
+      }
+      if (diag1) {
+        count++;
+        document.getElementById('diag-line-0').style.display = 'block';
+      }
+      if (diag2) {
+        count++;
+        document.getElementById('diag-line-1').style.display = 'block';
+      }
+
+      lineCountSpan.textContent = `${count}줄 완성`;
+
+      // 새 줄 완성 시 야옹 (빙고 이후에도 계속)
+      if (gameStarted && count > lastLineCount) {
+        playSound(meowSound, 0.3);
+      }
+
+      // 2. 빙고 사운드는 한 번만, 야옹 끝난 뒤에만
+      if (gameStarted && !bingoAchieved && count >= targetLines) {
+        bingoAchieved = true;
+
+        const playBingo = () => {
+          playSound(bingoSound, 0.7);
+          triggerRainbowFlash();
+        };
+
+        // 이미 야옹이 재생 중이면 끝난 뒤에 실행
+        if (meowSound && !meowSound.paused && meowSound.currentTime > 0) {
+          const handler = () => {
+            meowSound.removeEventListener('ended', handler);
+            playBingo();
+          };
+          meowSound.addEventListener('ended', handler);
+        } else {
+          // 야옹이 없으면 바로
+          playBingo();
+        }
+      }
+
+      lastLineCount = count;
+      bingoMessage.textContent = bingoAchieved ? '빙고!' : '';
+    }
+
+    buildBoardBtn.onclick = () => {
+      if (!gameStarted) buildBoard();
+    };
+
+    startBtn.onclick = () => {
+      if (gameStarted) return;
+      targetLines = +targetLinesSelect.value;
+
+      if (!boardBuilt) {
+        const ok = buildBoard();
+        if (!ok) return;
+      }
+
+      gameStarted = true;
+      targetLinesSelect.disabled = true;
+      buildBoardBtn.disabled = true;
+      startBtn.disabled = true;
+      resetBtn.disabled = false;
+    };
+
+    resetBtn.onclick = () => {
+      gameStarted = false;
+      boardBuilt = false;
+      lastLineCount = 0;
+      bingoAchieved = false;
+
+      checked = Array.from({ length: 5 }, () => Array(5).fill(false));
+      bingoGrid.innerHTML = '';
+      clearLines();
+      lineCountSpan.textContent = '0줄 완성';
+      bingoMessage.textContent = '';
+      errorMessage.textContent = '';
+
+      targetLinesSelect.disabled = false;
+      buildBoardBtn.disabled = false;
+      startBtn.disabled = false;
+      resetBtn.disabled = true;
+    };
+
+    themeSelect.addEventListener('change', () => {
+      const theme = themeSelect.value;
+      document.body.setAttribute('data-theme', theme);
+    });
+  </script>
+</body>
+</html>
